@@ -1,5 +1,5 @@
 # fatfree-core
-Fat-Free Framework core library
+Fat-Free Framework core library (Next Gen)
 
 ### Usage:
 
@@ -14,7 +14,7 @@ $f3 = require('lib/base.php');
 **with composer:**
 
 ```
-composer require bcosca/fatfree-core
+composer require globus-studio/fatfree-core
 ```
 
 ```php
