@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Tests\Unit;
+namespace Tests\Unit\Compatibility;
 
 use PHPUnit\Framework\TestCase;
 
@@ -27,7 +27,7 @@ final class Php85CompatibilityTest extends TestCase
     public function testPingbackClassIsRemoved(): void
     {
         $this->assertFileDoesNotExist(
-            dirname(__DIR__, 2) . '/web/pingback.php',
+            dirname(__DIR__, 3) . '/web/pingback.php',
             'web/pingback.php must be removed (xmlrpc_* not in PHP 8.5)'
         );
         $this->assertFalse(
@@ -38,7 +38,7 @@ final class Php85CompatibilityTest extends TestCase
 
     public function testLegacyCacheBackendsAreNotReferencedInBase(): void
     {
-        $src = file_get_contents(dirname(__DIR__, 2) . '/base.php');
+        $src = file_get_contents(dirname(__DIR__, 3) . '/base.php');
         $this->assertIsString($src);
         $this->assertStringNotContainsString('xcache_get(', $src);
         $this->assertStringNotContainsString('wincache_ucache_get(', $src);
@@ -53,7 +53,7 @@ final class Php85CompatibilityTest extends TestCase
         // Just make sure the code path compiles and the constant logic is valid.
         // We don't actually issue a network call here.
         $this->assertTrue(class_exists(\Web::class));
-        $src = file_get_contents(dirname(__DIR__, 2) . '/web.php');
+        $src = file_get_contents(dirname(__DIR__, 3) . '/web.php');
         $this->assertStringContainsString('CURLOPT_PROTOCOLS_STR', $src);
     }
 }

@@ -170,7 +170,7 @@ class Web extends Prefab {
 	**/
 	function acceptable($list=NULL) {
 		$accept=[];
-		foreach (explode(',',str_replace(' ','',@$_SERVER['HTTP_ACCEPT']))
+		foreach (explode(',',str_replace(' ','',(string)($_SERVER['HTTP_ACCEPT']??'')))
 			as $mime)
 			if (preg_match('/(.+?)(?:;q=([\d\.]+)|$)/',$mime,$parts))
 				$accept[$parts[1]]=isset($parts[2])?$parts[2]:1;
