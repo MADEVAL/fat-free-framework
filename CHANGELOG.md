@@ -1,9 +1,25 @@
 CHANGELOG
 
+3.9.2.2 (25.04.2026)
+---
+*	feat: comprehensive test suite - unit, integration, and compatibility tests for Base, Cache, UTF, Web, Audit, Auth, Basket, Bcrypt, Image, Log, Magic, Markdown, Matrix, SMTP, Template, CLI/WS, Jig, Mongo, SQL mapper/transaction/cursor, routing, sessions, ISO, and i18n
+*	feat: restructured test layout into `tests/Unit/{Core,Web,Util,Db,Compatibility}/` and `tests/Integration/{Db,Routing,Session}/`
+*	feat: added `tests/Support/MockWeb.php` for mocking `Web->request()` without live HTTP calls
+*	feat: added `phpunit.xml` configuration and `tests/bootstrap.php` environment initialiser
+*	feat: added `.gitignore` covering vendor, logs, and IDE-specific files
+*	fix: `web.php` - suppress PHP 8.5 deprecation on `$http_response_header` reference in unreachable else branch
+*	fix: `Cache` - removed deprecated `Memcache` (legacy), `WinCache`, and `XCache` backend support; corrected inline comments (Memcached)
+*	chore: `composer.json` - raised minimum PHP requirement to 7.4; added `phpunit/phpunit` and `mongodb/mongodb` as dev dependencies
+*	chore: removed deprecated `web/pingback.php` (Pingback class)
+*	chore: updated README - corrected Composer package name to `globus-studio/fatfree-core`
+
+3.9.2.1 (5.04.2026)
+*	fix: php 8.5 compatibility
+
 3.9.2 (02.12.2025)
 ---
-feat, Audit: Added bot/AI detection, #401
-fix: php 8.5 compatibility
+*	feat, Audit: Added bot/AI detection, #401
+*	fix: php 8.5 compatibility
 
 3.9.1 (09.08.2025)
 ---

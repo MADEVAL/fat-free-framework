@@ -8,7 +8,7 @@ use Base;
 use PHPUnit\Framework\TestCase;
 
 /**
- * Base::config — INI-style config file loading with sections.
+ * Base::config - INI-style config file loading with sections.
  */
 final class ConfigTest extends TestCase
 {

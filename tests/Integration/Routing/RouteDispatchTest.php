@@ -8,7 +8,7 @@ use Base;
 use PHPUnit\Framework\TestCase;
 
 /**
- * Full routing dispatch via Base::mock — covers GROUP, REST verb maps,
+ * Full routing dispatch via Base::mock - covers GROUP, REST verb maps,
  * before/after hooks and HEAD-as-GET fallback.
  */
 final class RouteDispatchTest extends TestCase

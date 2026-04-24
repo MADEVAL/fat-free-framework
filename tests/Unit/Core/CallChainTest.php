@@ -8,7 +8,7 @@ use Base;
 use PHPUnit\Framework\TestCase;
 
 /**
- * Base::call / chain / relay / grab — F3 dynamic invocation surface.
+ * Base::call / chain / relay / grab - F3 dynamic invocation surface.
  */
 final class CallChainTest extends TestCase
 {
