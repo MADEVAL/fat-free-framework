@@ -2707,7 +2707,7 @@ class Cache extends Prefab {
 		$dsn,
 		//! Prefix for cache entries
 		$prefix,
-		//! MemCache or Redis object
+		//! Memcached or Redis object
 		$ref;
 
 	/**
@@ -2730,17 +2730,8 @@ class Cache extends Prefab {
 			case 'redis':
 				$raw=$this->ref->get($ndx);
 				break;
-			case 'memcache':
-				$raw=memcache_get($this->ref,$ndx);
-				break;
 			case 'memcached':
 				$raw=$this->ref->get($ndx);
-				break;
-			case 'wincache':
-				$raw=wincache_ucache_get($ndx);
-				break;
-			case 'xcache':
-				$raw=xcache_get($ndx);
 				break;
 			case 'folder':
 				$raw=$fw->read($parts[1]
@@ -2779,14 +2770,8 @@ class Cache extends Prefab {
 				return call_user_func($parts[0].'_store',$ndx,$data,$ttl);
 			case 'redis':
 				return $this->ref->set($ndx,$data,$ttl?['ex'=>$ttl]:[]);
-			case 'memcache':
-				return memcache_set($this->ref,$ndx,$data,0,$ttl);
 			case 'memcached':
 				return $this->ref->set($ndx,$data,$ttl);
-			case 'wincache':
-				return wincache_ucache_set($ndx,$data,$ttl);
-			case 'xcache':
-				return xcache_set($ndx,$data,$ttl);
 			case 'folder':
 				return $fw->write($parts[1].
 					str_replace(['/','\\'],'',$ndx),$data);
@@ -2819,14 +2804,8 @@ class Cache extends Prefab {
 				return call_user_func($parts[0].'_delete',$ndx);
 			case 'redis':
 				return $this->ref->del($ndx);
-			case 'memcache':
-				return memcache_delete($this->ref,$ndx);
 			case 'memcached':
 				return $this->ref->delete($ndx);
-			case 'wincache':
-				return wincache_ucache_delete($ndx);
-			case 'xcache':
-				return xcache_unset($ndx);
 			case 'folder':
 				return @unlink($parts[1].$ndx);
 		}
@@ -2862,40 +2841,10 @@ class Cache extends Prefab {
 				foreach($keys as $key)
 					$this->ref->del($key);
 				return TRUE;
-			case 'memcache':
-				foreach (memcache_get_extended_stats(
-					$this->ref,'slabs') as $slabs)
-					foreach (array_filter(array_keys($slabs),'is_numeric')
-						as $id)
-						foreach (memcache_get_extended_stats(
-							$this->ref,'cachedump',$id) as $data)
-							if (is_array($data))
-								foreach (array_keys($data) as $key)
-									if (preg_match($regex,$key))
-										memcache_delete($this->ref,$key);
-				return TRUE;
 			case 'memcached':
 				foreach ($this->ref->getallkeys()?:[] as $key)
 					if (preg_match($regex,$key))
 						$this->ref->delete($key);
-				return TRUE;
-			case 'wincache':
-				$info=wincache_ucache_info();
-				foreach ($info['ucache_entries'] as $item)
-					if (preg_match($regex,$item['key_name']))
-						wincache_ucache_delete($item['key_name']);
-				return TRUE;
-			case 'xcache':
-				if ($suffix && !ini_get('xcache.admin.enable_auth')) {
-					$cnt=xcache_count(XC_TYPE_VAR);
-					for ($i=0;$i<$cnt;++$i) {
-						$list=xcache_list(XC_TYPE_VAR,$i);
-						foreach ($list['cache_list'] as $item)
-							if (preg_match($regex,$item['name']))
-								xcache_unset($item['name']);
-					}
-				} else
-					xcache_unset_by_prefix($this->prefix.'.');
 				return TRUE;
 			case 'folder':
 				if ($glob=@glob($parts[1].'*'))
@@ -2927,15 +2876,6 @@ class Cache extends Prefab {
 				if(isset($db))
 					$this->ref->select($db);
 			}
-			elseif (preg_match('/^memcache=(.+)/',$dsn,$parts) &&
-				extension_loaded('memcache'))
-				foreach ($fw->split($parts[1]) as $server) {
-					list($host,$port)=explode(':',$server)+[1=>11211];
-					if (empty($this->ref))
-						$this->ref=@memcache_connect($host,$port)?:NULL;
-					else
-						memcache_add_server($this->ref,$host,$port);
-				}
 			elseif (preg_match('/^memcached=(.+)/',$dsn,$parts) &&
 				extension_loaded('memcached'))
 				foreach ($fw->split($parts[1]) as $server) {
@@ -2945,7 +2885,7 @@ class Cache extends Prefab {
 					$this->ref->addServer($host,$port);
 				}
 			if (empty($this->ref) && !preg_match('/^folder\h*=/',$dsn))
-				$dsn=($grep=preg_grep('/^(apc|wincache|xcache)/',
+				$dsn=($grep=preg_grep('/^apcu?$/',
 					array_map('strtolower',get_loaded_extensions())))?
 						// Auto-detect
 						current($grep):
@@ -3127,10 +3067,15 @@ class Preview extends View {
 	*	@param $val int|float
 	**/
 	function c($val) {
-		$locale=setlocale(LC_NUMERIC,0);
+		// PHP 8.0+ float-to-string conversion is no longer locale-sensitive,
+		// so the setlocale() dance is unnecessary.
+		if (PHP_VERSION_ID >= 80000)
+			return (string)(float)$val;
+		// PHP 7.x fallback (setlocale($cat, 0) throws TypeError in PHP 8.5+)
+		$locale=setlocale(LC_NUMERIC,'0');
 		setlocale(LC_NUMERIC,'C');
 		$out=(string)(float)$val;
-		$locale=setlocale(LC_NUMERIC,$locale);
+		setlocale(LC_NUMERIC,$locale);
 		return $out;
 	}
 

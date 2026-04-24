@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:noNamespaceSchemaLocation="vendor/phpunit/phpunit/phpunit.xsd"
+         bootstrap="tests/bootstrap.php"
+         colors="true"
+         cacheDirectory=".phpunit.cache"
+         displayDetailsOnTestsThatTriggerWarnings="true"
+         displayDetailsOnTestsThatTriggerNotices="true"
+         displayDetailsOnTestsThatTriggerDeprecations="true"
+         failOnWarning="false"
+         failOnDeprecation="false">
+    <testsuites>
+        <testsuite name="unit">
+            <directory>tests/Unit</directory>
+        </testsuite>
+        <testsuite name="integration">
+            <directory>tests/Integration</directory>
+        </testsuite>
+    </testsuites>
+    <source>
+        <include>
+            <file>base.php</file>
+            <file>web.php</file>
+            <file>utf.php</file>
+            <file>template.php</file>
+            <file>image.php</file>
+            <file>session.php</file>
+            <directory>db</directory>
+        </include>
+        <exclude>
+            <directory>tests</directory>
+            <directory>vendor</directory>
+        </exclude>
+    </source>
+    <php>
+        <ini name="error_reporting" value="-1"/>
+        <ini name="display_errors" value="1"/>
+        <env name="DB_MYSQL_DSN" value="mysql:host=127.0.0.1;port=3306;charset=utf8mb4"/>
+        <env name="DB_MYSQL_USER" value="root"/>
+        <env name="DB_MYSQL_PASS" value="root"/>
+        <env name="DB_MYSQL_NAME" value="fatfree_test"/>
+        <env name="DB_PGSQL_DSN" value="pgsql:host=127.0.0.1;port=5432"/>
+        <env name="DB_PGSQL_USER" value="postgres"/>
+        <env name="DB_PGSQL_PASS" value="postgres"/>
+        <env name="DB_PGSQL_NAME" value="fatfree_test"/>
+        <env name="DB_MONGO_URI" value="mongodb://localhost:27017/"/>
+        <env name="DB_MONGO_NAME" value="fatfree_test"/>
+    </php>
+</phpunit>

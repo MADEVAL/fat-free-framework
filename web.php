@@ -350,8 +350,15 @@ class Web extends Prefab {
 				$options['follow_location']);
 		curl_setopt($curl,CURLOPT_MAXREDIRS,
 			$options['max_redirects']);
-		curl_setopt($curl,CURLOPT_PROTOCOLS,CURLPROTO_HTTP|CURLPROTO_HTTPS);
-		curl_setopt($curl,CURLOPT_REDIR_PROTOCOLS,CURLPROTO_HTTP|CURLPROTO_HTTPS);
+		// libcurl 7.85.0+ deprecated CURLOPT_PROTOCOLS in favor of *_STR variants.
+		// PHP 8.4+ exposes the new constants; fall back to legacy bitmask otherwise.
+		if (defined('CURLOPT_PROTOCOLS_STR')) {
+			curl_setopt($curl,CURLOPT_PROTOCOLS_STR,'http,https');
+			curl_setopt($curl,CURLOPT_REDIR_PROTOCOLS_STR,'http,https');
+		} else {
+			curl_setopt($curl,CURLOPT_PROTOCOLS,CURLPROTO_HTTP|CURLPROTO_HTTPS);
+			curl_setopt($curl,CURLOPT_REDIR_PROTOCOLS,CURLPROTO_HTTP|CURLPROTO_HTTPS);
+		}
 		curl_setopt($curl,CURLOPT_CUSTOMREQUEST,$options['method']);
 		if (isset($options['header']))
 			curl_setopt($curl,CURLOPT_HTTPHEADER,$options['header']);
