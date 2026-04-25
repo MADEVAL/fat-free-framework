@@ -61,6 +61,12 @@ vendor/bin/phpunit --testsuite integration
 
 DB connection vars: `DB_MYSQL_DSN`, `DB_MYSQL_USER`, `DB_MYSQL_PASS`, `DB_MYSQL_NAME`, same prefix for `DB_PGSQL_*`, plus `DB_MONGO_URI` and `DB_MONGO_NAME`.
 
+## Built on this core
+
+**[Atomic Framework](https://github.com/MADEVAL/Atomic-Framework)** is a full-featured PHP framework built on top of this core. It adds a structured application layer with: authentication (bcrypt, OAuth 2.0, Telegram, rate limiting, impersonation), MySQL/Redis/Memcached via `ConnectionManager`, timestamp-based migrations, Redis/DB queue with retry and monitoring, POSIX cron scheduler, multi-driver cache with cascade fallback, parameterized middleware, hierarchical event dispatcher, WordPress-compatible hook/filter layer, SMTP mailer with DNS deliverability scoring, i18n with URL prefixing, 45+ CLI commands, NaCl/libsodium encryption, WebSocket server (Workerman + Redis pub/sub), and a plugin lifecycle system. Requires PHP >= 8.1.
+
+**[Atomic-Framework-Application](https://github.com/MADEVAL/Atomic-Framework-Application)** is the official application skeleton/template for Atomic Framework.
+
 ## Links
 
 * Upstream demo: https://github.com/bcosca/fatfree
