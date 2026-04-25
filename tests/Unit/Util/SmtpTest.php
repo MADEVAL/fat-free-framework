@@ -108,4 +108,19 @@ final class SmtpTest extends TestCase
         $this->assertSame('cc@example.com', $smtp->get('Cc'));
         $this->assertSame('bcc@example.com', $smtp->get('Bcc'));
     }
+
+    public function testAttachWithAliasAndCidDoesNotThrow(): void
+    {
+        $tmp = sys_get_temp_dir() . DIRECTORY_SEPARATOR . 'smtp-cid-' . uniqid() . '.png';
+        file_put_contents($tmp, 'fake-png-data');
+        try {
+            $smtp = new Smtp();
+            // $alias renames the attachment; $cid enables inline embedding.
+            $smtp->attach($tmp, 'image.png', 'img001@example.com');
+            // No exception means the call succeeded.
+            $this->addToAssertionCount(1);
+        } finally {
+            @unlink($tmp);
+        }
+    }
 }

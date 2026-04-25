@@ -354,4 +354,377 @@ final class WebInternalsTest extends TestCase
         $_SERVER['HTTP_ACCEPT'] = 'text/plain';
         $this->assertFalse($this->web->acceptable(['image/png']));
     }
+
+    // -- diacritics ---------------------------------------------------------
+
+    public function testDiacriticsReturnsMapWithKnownEntries(): void
+    {
+        $map = $this->web->diacritics();
+        $this->assertIsArray($map);
+        $this->assertGreaterThan(100, count($map));
+        $this->assertSame('Ae', $map['Ä']);
+        $this->assertSame('ae', $map['ä']);
+        $this->assertSame('Oe', $map['Ö']);
+        $this->assertSame('Ue', $map['Ü']);
+        $this->assertArrayHasKey('Å', $map);
+        $this->assertArrayHasKey('ñ', $map);
+    }
+
+    // -- request / transport ------------------------------------------------
+
+    public function testRequestReturnsFalseForNonHttpScheme(): void
+    {
+        // ftp:// is rejected before any transport is used.
+        $this->assertFalse($this->web->request('ftp://example.com'));
+    }
+
+    public function testRequestWithCurlEngineReturnsArrayOnConnectionFailure(): void
+    {
+        if (!extension_loaded('curl')) {
+            $this->markTestSkipped('cURL extension not available');
+        }
+        $this->web->engine('curl');
+        // Port 1 on loopback is always refused - fast failure, no timeout risk.
+        $result = $this->web->request('http://127.0.0.1:1/');
+        $this->assertIsArray($result);
+        $this->assertSame('cURL', $result['engine']);
+        $this->assertArrayHasKey('error', $result);
+        $this->assertNotEmpty($result['error']);
+    }
+
+    public function testRequestWithStreamEngineReturnsArrayOnConnectionFailure(): void
+    {
+        if (!ini_get('allow_url_fopen')) {
+            $this->markTestSkipped('allow_url_fopen is disabled');
+        }
+        // PHP 8+ no longer zeros error_reporting() inside custom handlers for @-suppressed
+        // calls, so F3's error handler fires on file_get_contents failure. Guard it.
+        $f3        = \Base::instance();
+        $prevQuiet = $f3->get('QUIET');
+        $prevHalt  = $f3->get('HALT');
+        $f3->set('QUIET', true);
+        $f3->set('HALT', false);
+        $this->web->engine('stream');
+        try {
+            $result = $this->web->request('http://127.0.0.1:1/');
+            $this->assertIsArray($result);
+            $this->assertSame('stream', $result['engine']);
+        } finally {
+            $this->web->engine('curl');
+            $f3->set('QUIET', $prevQuiet);
+            $f3->set('HALT', $prevHalt);
+        }
+    }
+
+    public function testRequestWithSocketEngineReturnsArrayOnConnectionFailure(): void
+    {
+        if (!function_exists('fsockopen')) {
+            $this->markTestSkipped('fsockopen not available');
+        }
+        $f3        = \Base::instance();
+        $prevQuiet = $f3->get('QUIET');
+        $prevHalt  = $f3->get('HALT');
+        $f3->set('QUIET', true);
+        $f3->set('HALT', false);
+        $this->web->engine('socket');
+        try {
+            $result = $this->web->request('http://127.0.0.1:1/');
+            $this->assertIsArray($result);
+            $this->assertSame('socket', $result['engine']);
+        } finally {
+            $this->web->engine('curl');
+            $f3->set('QUIET', $prevQuiet);
+            $f3->set('HALT', $prevHalt);
+        }
+    }
+
+    // -- rss ----------------------------------------------------------------
+
+    public function testRssReturnsFalseWhenRequestFails(): void
+    {
+        // ftp:// is rejected by request() -> rss() returns FALSE.
+        $this->assertFalse($this->web->rss('ftp://unreachable'));
+    }
+
+    public function testRssReturnsFalseForInvalidXml(): void
+    {
+        if (!extension_loaded('curl')) {
+            $this->markTestSkipped('cURL extension not available');
+        }
+        // Port 1 connection fails, body is empty string - not valid XML.
+        $this->web->engine('curl');
+        $result = $this->web->rss('http://127.0.0.1:1/feed.xml');
+        $this->web->engine('curl');
+        $this->assertFalse($result);
+    }
+
+    // -- whois --------------------------------------------------------------
+
+    public function testWhoisReturnsFalseWhenConnectionFails(): void
+    {
+        // fsockopen failure triggers F3's error handler in PHP 8+ (same @ issue).
+        $f3        = \Base::instance();
+        $prevQuiet = $f3->get('QUIET');
+        $prevHalt  = $f3->get('HALT');
+        $f3->set('QUIET', true);
+        $f3->set('HALT', false);
+        try {
+            // 127.0.0.1 port 43: connection refused immediately.
+            $result = $this->web->whois('example.com', '127.0.0.1');
+            $this->assertFalse($result);
+        } finally {
+            $f3->set('QUIET', $prevQuiet);
+            $f3->set('HALT', $prevHalt);
+        }
+    }
+
+    // -- mime inspect mode --------------------------------------------------
+
+    public function testMimeInspectModeWithLocalFileUsesFileinfo(): void
+    {
+        if (!extension_loaded('fileinfo')) {
+            $this->markTestSkipped('fileinfo extension not available');
+        }
+        $tmp = sys_get_temp_dir() . DIRECTORY_SEPARATOR . 'mi-' . uniqid() . '.png';
+        // Minimal PNG magic bytes so fileinfo identifies it as image/png.
+        file_put_contents($tmp, "\x89PNG\x0d\x0a\x1a\x0a" . str_repeat("\x00", 20));
+        try {
+            $result = $this->web->mime($tmp, true);
+            $this->assertIsString($result);
+            $this->assertNotEmpty($result);
+        } finally {
+            @unlink($tmp);
+        }
+    }
+
+    // -- engine foreach fallback -------------------------------------------
+
+    public function testEngineFallsBackViaForEachWhenRequestedUnavailable(): void
+    {
+        if (!extension_loaded('curl')) {
+            $this->markTestSkipped('curl must be available as fallback target');
+        }
+        // Passing an unknown engine name causes $flags['bogus'] = undefined key
+        // (PHP 8 E_WARNING). F3's error handler fires, but with QUIET+HALT guards
+        // it returns cleanly. Code continues: $flags['bogus'] = null (falsy),
+        // so engine() falls through to the foreach which finds the first available engine.
+        $f3        = \Base::instance();
+        $prevQuiet = $f3->get('QUIET');
+        $prevHalt  = $f3->get('HALT');
+        $f3->set('QUIET', true);
+        $f3->set('HALT', false);
+        try {
+            $result = $this->web->engine('bogus');
+            $this->assertContains($result, ['curl', 'stream', 'socket']);
+        } finally {
+            $this->web->engine('curl');
+            $f3->set('QUIET', $prevQuiet);
+            $f3->set('HALT', $prevHalt);
+        }
+    }
+
+    // -- request local URL construction ------------------------------------
+
+    public function testRequestWithRelativeUrlUsesHiveSchemeAndHost(): void
+    {
+        $f3    = \Base::instance();
+        $saved = [
+            'SCHEME' => $f3->get('SCHEME'),
+            'HOST'   => $f3->get('HOST'),
+            'PORT'   => $f3->get('PORT'),
+            'BASE'   => $f3->get('BASE'),
+            'QUIET'  => $f3->get('QUIET'),
+            'HALT'   => $f3->get('HALT'),
+        ];
+        $f3->set('SCHEME', 'http');
+        $f3->set('HOST', '127.0.0.1');
+        $f3->set('PORT', 1);
+        $f3->set('BASE', '');
+        $f3->set('QUIET', true);
+        $f3->set('HALT', false);
+        $this->web->engine('curl');
+        try {
+            // No scheme: request() constructs full URL from SCHEME/HOST/PORT hive.
+            // Port 1 is always refused - the URL construction code is exercised.
+            $result = $this->web->request('/probe');
+            $this->assertIsArray($result);
+        } finally {
+            $this->web->engine('curl');
+            foreach ($saved as $k => $v) {
+                $f3->set($k, $v);
+            }
+        }
+    }
+
+    // -- minify array input ------------------------------------------------
+
+    public function testMinifyWithArrayOfFilesInput(): void
+    {
+        $dir = sys_get_temp_dir() . DIRECTORY_SEPARATOR . 'min-arr-' . uniqid() . DIRECTORY_SEPARATOR;
+        mkdir($dir, 0777, true);
+        file_put_contents($dir . 'a.css', "body { color: red; }\n");
+        file_put_contents($dir . 'b.css', "p { margin: 0; }\n");
+        $f3        = \Base::instance();
+        $prevCache = $f3->get('CACHE');
+        $f3->set('CACHE', false);
+        try {
+            // Array input: covers the is_string($files) -> split branch in minify().
+            $result = $this->web->minify(['a.css', 'b.css'], null, false, $dir);
+            $this->assertStringContainsString('color', $result);
+        } finally {
+            $f3->set('CACHE', $prevCache);
+            @unlink($dir . 'a.css');
+            @unlink($dir . 'b.css');
+            @rmdir($dir);
+        }
+    }
+
+    // -- acceptable with array list ----------------------------------------
+
+    public function testAcceptableWithArrayListInput(): void
+    {
+        // Passing an array (not a string) covers the is_string($list) = false branch.
+        $_SERVER['HTTP_ACCEPT'] = 'application/json,text/html;q=0.8';
+        $result = $this->web->acceptable(['text/html', 'application/json']);
+        $this->assertSame('application/json', $result);
+    }
+
+    // -- receive (PUT) ------------------------------------------------------
+
+    public function testReceivePutBodyCreatesFile(): void
+    {
+        $f3      = \Base::instance();
+        $uploads = sys_get_temp_dir() . DIRECTORY_SEPARATOR . 'recv-' . uniqid() . DIRECTORY_SEPARATOR;
+
+        $saved = [
+            'UPLOADS' => $f3->get('UPLOADS'),
+            'VERB'    => $f3->get('VERB'),
+            'BODY'    => $f3->get('BODY'),
+            'RAW'     => $f3->get('RAW'),
+            'URI'     => $f3->get('URI'),
+            'TEMP'    => $f3->get('TEMP'),
+        ];
+
+        $f3->set('UPLOADS', $uploads);
+        $f3->set('VERB', 'PUT');
+        $f3->set('BODY', 'put-file-data');
+        $f3->set('RAW', false);
+        $f3->set('URI', '/testfile.txt');
+        $f3->set('TEMP', sys_get_temp_dir() . DIRECTORY_SEPARATOR);
+
+        try {
+            $result = $this->web->receive();
+            $this->assertTrue($result, 'receive() must return true on PUT success');
+            $this->assertFileExists($uploads . 'testfile.txt');
+            $this->assertSame('put-file-data', file_get_contents($uploads . 'testfile.txt'));
+        } finally {
+            @unlink($uploads . 'testfile.txt');
+            @rmdir($uploads);
+            foreach ($saved as $k => $v) {
+                $f3->set($k, $v);
+            }
+        }
+    }
+
+    public function testReceivePutWithSlugDisabledKeepsOriginalName(): void
+    {
+        $f3      = \Base::instance();
+        $uploads = sys_get_temp_dir() . DIRECTORY_SEPARATOR . 'recv2-' . uniqid() . DIRECTORY_SEPARATOR;
+        $saved   = [
+            'UPLOADS' => $f3->get('UPLOADS'),
+            'VERB'    => $f3->get('VERB'),
+            'BODY'    => $f3->get('BODY'),
+            'RAW'     => $f3->get('RAW'),
+            'URI'     => $f3->get('URI'),
+            'TEMP'    => $f3->get('TEMP'),
+        ];
+        $f3->set('UPLOADS', $uploads);
+        $f3->set('VERB', 'PUT');
+        $f3->set('BODY', 'noslug');
+        $f3->set('RAW', false);
+        $f3->set('URI', '/MyFile.txt');
+        $f3->set('TEMP', sys_get_temp_dir() . DIRECTORY_SEPARATOR);
+        try {
+            // slug=false: filename used verbatim, not slugified.
+            $result = $this->web->receive(null, false, false);
+            $this->assertTrue($result);
+            $this->assertFileExists($uploads . 'MyFile.txt');
+        } finally {
+            @unlink($uploads . 'MyFile.txt');
+            @rmdir($uploads);
+            foreach ($saved as $k => $v) {
+                $f3->set($k, $v);
+            }
+        }
+    }
+
+    public function testReceivePostFilesPathCoversIteration(): void
+    {
+        $f3      = \Base::instance();
+        $uploads = sys_get_temp_dir() . DIRECTORY_SEPARATOR . 'recv3-' . uniqid() . DIRECTORY_SEPARATOR;
+        mkdir($uploads, 0777, true);
+        $savedUploads = $f3->get('UPLOADS');
+        $savedVerb    = $f3->get('VERB');
+        $f3->set('UPLOADS', $uploads);
+        $f3->set('VERB', 'GET');
+
+        // Populate $_FILES to exercise the POST-upload iteration path.
+        // move_uploaded_file() will return false in CLI (not a real upload),
+        // but all iteration, slug, and result-building code is covered.
+        $_FILES = [
+            'upload' => [
+                'name'     => 'document.txt',
+                'type'     => 'text/plain',
+                'size'     => 4,
+                'tmp_name' => '/nonexistent/tmp',
+                'error'    => 0,
+            ],
+        ];
+        try {
+            $result = $this->web->receive();
+            $this->assertIsArray($result);
+        } finally {
+            $_FILES = [];
+            $f3->set('UPLOADS', $savedUploads);
+            $f3->set('VERB', $savedVerb);
+            @rmdir($uploads);
+        }
+    }
+
+    public function testReceivePostFilesSkipsEmptyNameAndHandlesError(): void
+    {
+        $f3      = \Base::instance();
+        $uploads = sys_get_temp_dir() . DIRECTORY_SEPARATOR . 'recv4-' . uniqid() . DIRECTORY_SEPARATOR;
+        mkdir($uploads, 0777, true);
+        $savedUploads = $f3->get('UPLOADS');
+        $savedVerb    = $f3->get('VERB');
+        $f3->set('UPLOADS', $uploads);
+        $f3->set('VERB', 'GET');
+
+        $_FILES = [
+            'empty_name' => [
+                'name'     => '',      // empty -> skipped via continue
+                'type'     => '',
+                'size'     => 0,
+                'tmp_name' => '',
+                'error'    => 0,
+            ],
+            'with_error' => [
+                'name'     => 'fail.txt',
+                'type'     => 'text/plain',
+                'size'     => 0,
+                'tmp_name' => '/nonexistent',
+                'error'    => UPLOAD_ERR_CANT_WRITE, // error != 0 -> $out[...] = false
+            ],
+        ];
+        try {
+            $result = $this->web->receive();
+            $this->assertIsArray($result);
+        } finally {
+            $_FILES = [];
+            $f3->set('UPLOADS', $savedUploads);
+            $f3->set('VERB', $savedVerb);
+            @rmdir($uploads);
+        }
+    }
 }

@@ -286,4 +286,34 @@ final class ImageTest extends TestCase
         // 3-digit shorthand string: 'f00' also represents red via doubling.
         $this->assertSame([255, 0, 0], $img->rgb('f00'));
     }
+
+    // -- save ---------------------------------------------------------------
+
+    public function testSaveWritesSnapshotFileToTemp(): void
+    {
+        $f3      = \Base::instance();
+        $prevTemp = $f3->get('TEMP');
+        $dir     = sys_get_temp_dir() . DIRECTORY_SEPARATOR . 'img-save-' . uniqid() . DIRECTORY_SEPARATOR;
+        $f3->set('TEMP', $dir);
+
+        try {
+            $img = new Image(null, true); // flag=true: history mode
+            $img->load($this->fixture()->dump());
+
+            $result = $img->save();
+
+            // save() returns $this for chaining.
+            $this->assertSame($img, $result);
+
+            // A snapshot .png file must exist in the TEMP directory.
+            $files = glob($dir . '*.png') ?: [];
+            $this->assertNotEmpty($files, 'save() must write a snapshot PNG to TEMP');
+        } finally {
+            foreach (glob($dir . '*') ?: [] as $f) {
+                @unlink($f);
+            }
+            @rmdir($dir);
+            $f3->set('TEMP', $prevTemp);
+        }
+    }
 }

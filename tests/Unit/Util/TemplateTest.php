@@ -156,4 +156,39 @@ final class TemplateTest extends TestCase
         $this->f3->set('msg', 'hi');
         $this->assertSame('HI', $this->tpl->render('f.htm'));
     }
+
+    // -- extend + __call + beforerender ------------------------------------
+
+    public function testExtendRegistersCustomTagAndRenders(): void
+    {
+        // Register a <ping /> tag that always outputs 'pong'.
+        $this->tpl->extend('ping', function (array $node): string {
+            return '<?php echo \'pong\'; ?>';
+        });
+        $this->write('ping.htm', 'say:<ping />');
+        $this->assertSame('say:pong', $this->tpl->render('ping.htm'));
+    }
+
+    public function testExtendCustomTagReceivesAttributes(): void
+    {
+        // Register a <shout label="..." /> tag that upper-cases the literal value.
+        $this->tpl->extend('shout', function (array $node): string {
+            $val = $node['@attrib']['label'] ?? '';
+            return '<?php echo strtoupper(' . \Base::instance()->stringify($val) . '); ?>';
+        });
+        $this->write('shout.htm', '<shout label="hello" />');
+        $this->assertSame('HELLO', $this->tpl->render('shout.htm'));
+    }
+
+    public function testBeforeRenderCallbackModifiesTemplateSource(): void
+    {
+        $this->write('bfr.htm', 'BEFORE');
+        // Use a fresh Template instance to avoid polluting the shared singleton.
+        $tpl = new \Template();
+        $tpl->beforerender(function (string $src): string {
+            return str_replace('BEFORE', 'AFTER', $src);
+        });
+        $out = $tpl->render('bfr.htm');
+        $this->assertSame('AFTER', $out);
+    }
 }
