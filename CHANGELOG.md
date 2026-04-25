@@ -1,5 +1,10 @@
 CHANGELOG
 
+3.9.2.3 (25.04.2026)
+---
+*	refactor: split `base.php` - extracted `Registry`, `Prefab`, `Cache`, `View`, `Preview`, `ISO` into `base/*.php`; `base.php` reduced from 3 678 to 2 691 lines
+*	feat, Audit: added `uuid($str, $strict=true)` - validates RFC 9562 UUIDs v1-v8 (strict) or any 8-4-4-4-12 hex pattern (loose); PCRE with `/D` flag prevents newline bypass
+
 3.9.2.2 (25.04.2026)
 ---
 *	feat: comprehensive test suite - unit, integration, and compatibility tests for Base, Cache, UTF, Web, Audit, Auth, Basket, Bcrypt, Image, Log, Magic, Markdown, Matrix, SMTP, Template, CLI/WS, Jig, Mongo, SQL mapper/transaction/cursor, routing, sessions, ISO, and i18n

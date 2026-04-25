@@ -1280,7 +1280,7 @@ final class BaseFullCoverageTest extends TestCase
     }
 
     // =========================================================
-    // run() — no-routes exception
+    // run() - no-routes exception
     // =========================================================
 
     public function testRunThrowsWhenNoRoutesRegistered(): void
@@ -1369,7 +1369,7 @@ final class BaseFullCoverageTest extends TestCase
     }
 
     // =========================================================
-    // ip() — X-Forwarded-For header
+    // ip() - X-Forwarded-For header
     // =========================================================
 
     public function testIpXForwardedFor(): void
@@ -1385,7 +1385,7 @@ final class BaseFullCoverageTest extends TestCase
     }
 
     // =========================================================
-    // redirect() — array pattern
+    // redirect() - array pattern
     // =========================================================
 
     public function testRedirectWithArrayPattern(): void
@@ -1406,7 +1406,7 @@ final class BaseFullCoverageTest extends TestCase
     }
 
     // =========================================================
-    // alias() — string params and throw for non-existent
+    // alias() - string params and throw for non-existent
     // =========================================================
 
     public function testAliasWithStringParams(): void
@@ -1416,7 +1416,7 @@ final class BaseFullCoverageTest extends TestCase
         $prevAliases = $f3->get('ALIASES');
         $f3->route('GET @covastr: /cov-str/@id', fn () => null);
         try {
-            // Pass params as a string — triggers parse() branch.
+            // Pass params as a string - triggers parse() branch.
             $url = $f3->alias('covastr', 'id=42');
             $this->assertStringContainsString('42', $url);
         } finally {
@@ -1432,7 +1432,7 @@ final class BaseFullCoverageTest extends TestCase
     }
 
     // =========================================================
-    // call() — afterroute returns FALSE / non-callable + hooks
+    // call() - afterroute returns FALSE / non-callable + hooks
     // =========================================================
 
     public function testCallAfterrouteReturnsFalse(): void
@@ -1483,7 +1483,7 @@ final class BaseFullCoverageTest extends TestCase
     }
 
     // =========================================================
-    // clear() — CACHE key, COOKIE key, SESSION root
+    // clear() - CACHE key, COOKIE key, SESSION root
     // =========================================================
 
     public function testClearCacheKey(): void
@@ -1526,7 +1526,7 @@ final class BaseFullCoverageTest extends TestCase
     }
 
     // =========================================================
-    // format() — integer modifier, currency positive, default type
+    // format() - integer modifier, currency positive, default type
     // =========================================================
 
     public function testFormatIntegerModifier(): void
@@ -1551,7 +1551,7 @@ final class BaseFullCoverageTest extends TestCase
     }
 
     // =========================================================
-    // set() — COOKIE key and JAR.samesite (session_set_cookie_params)
+    // set() - COOKIE key and JAR.samesite (session_set_cookie_params)
     // =========================================================
 
     public function testSetCookieKey(): void
@@ -1581,7 +1581,7 @@ final class BaseFullCoverageTest extends TestCase
     }
 
     // =========================================================
-    // grab() — CONTAINER paths (PSR11, callable, Prefab, throw)
+    // grab() - CONTAINER paths (PSR11, callable, Prefab, throw)
     // =========================================================
 
     public function testGrabPsr11Container(): void
@@ -1650,7 +1650,7 @@ final class BaseFullCoverageTest extends TestCase
     }
 
     // =========================================================
-    // run() — string handler token, 405, echo body, CORS expose
+    // run() - string handler token, 405, echo body, CORS expose
     // =========================================================
 
     public function testRunStringHandlerTokenAndClassNotFound(): void
@@ -1784,7 +1784,7 @@ final class BaseFullCoverageTest extends TestCase
     }
 
     // =========================================================
-    // Preview::build — {~ code ~}, {* comment *}, {- literal -}
+    // Preview::build - {~ code ~}, {* comment *}, {- literal -}
     // =========================================================
 
     public function testPreviewBuildCodeBlock(): void
@@ -1812,7 +1812,7 @@ final class BaseFullCoverageTest extends TestCase
     }
 
     // =========================================================
-    // Preview::resolve — persist=true path
+    // Preview::resolve - persist=true path
     // =========================================================
 
     public function testPreviewResolvePersist(): void
@@ -1833,7 +1833,7 @@ final class BaseFullCoverageTest extends TestCase
     }
 
     // =========================================================
-    // mutex() — creates non-existent TEMP directory
+    // mutex() - creates non-existent TEMP directory
     // =========================================================
 
     public function testMutexCreatesNonExistentTempDir(): void
@@ -1854,7 +1854,7 @@ final class BaseFullCoverageTest extends TestCase
     }
 
     // =========================================================
-    // error() — HTML output (non-AJAX, non-CLI)
+    // error() - HTML output (non-AJAX, non-CLI)
     // =========================================================
 
     public function testErrorHtmlOutput(): void
@@ -1901,7 +1901,7 @@ final class BaseFullCoverageTest extends TestCase
     }
 
     // =========================================================
-    // autoload() — AUTOLOAD as [path, callable] array
+    // autoload() - AUTOLOAD as [path, callable] array
     // =========================================================
 
     public function testAutoloadWithCallableArray(): void
@@ -1912,7 +1912,7 @@ final class BaseFullCoverageTest extends TestCase
         // The callable returns an empty string so no file is found; the class stays absent.
         $f3->set('AUTOLOAD', ['./', function (string $auto): string { return ''; }]);
         try {
-            // Trigger autoload for a non-existent class — line 2330 executes.
+            // Trigger autoload for a non-existent class - line 2330 executes.
             $exists = class_exists('CovNonExistentAutoload_' . substr(uniqid(), -6), true);
             $this->assertFalse($exists);
         } finally {
@@ -1921,7 +1921,7 @@ final class BaseFullCoverageTest extends TestCase
     }
 
     // =========================================================
-    // merge() — non-existent key (covers $ref=[] init, line 751)
+    // merge() - non-existent key (covers $ref=[] init, line 751)
     // =========================================================
 
     public function testMergeWithNewKey(): void
@@ -1936,7 +1936,7 @@ final class BaseFullCoverageTest extends TestCase
     }
 
     // =========================================================
-    // extend() — non-existent key (covers $ref=[] init, line 768)
+    // extend() - non-existent key (covers $ref=[] init, line 768)
     // =========================================================
 
     public function testExtendWithNewKey(): void
@@ -1951,7 +1951,7 @@ final class BaseFullCoverageTest extends TestCase
     }
 
     // =========================================================
-    // redirect() — trigger closure body (covers line 1703)
+    // redirect() - trigger closure body (covers line 1703)
     // =========================================================
 
     public function testRedirectClosureBody(): void
@@ -1981,7 +1981,7 @@ final class BaseFullCoverageTest extends TestCase
     }
 
     // =========================================================
-    // mock() — headers loop body (covers line 1554)
+    // mock() - headers loop body (covers line 1554)
     // =========================================================
 
     public function testMockWithHeaders(): void
@@ -2001,7 +2001,7 @@ final class BaseFullCoverageTest extends TestCase
     }
 
     // =========================================================
-    // mock() — GET args → URI gets query string (covers line 1559)
+    // mock() - GET args → URI gets query string (covers line 1559)
     // =========================================================
 
     public function testMockWithGetArgs(): void
@@ -2020,7 +2020,7 @@ final class BaseFullCoverageTest extends TestCase
     }
 
     // =========================================================
-    // mutex() — stale lock removed before acquiring (covers line 2235)
+    // mutex() - stale lock removed before acquiring (covers line 2235)
     // =========================================================
 
     public function testMutexStaleLock(): void
@@ -2042,7 +2042,7 @@ final class BaseFullCoverageTest extends TestCase
     }
 
     // =========================================================
-    // lexicon() — TTL: save to cache (1288) and return from cache (1257)
+    // lexicon() - TTL: save to cache (1288) and return from cache (1257)
     // =========================================================
 
     public function testLexiconWithTtl(): void
@@ -2068,7 +2068,7 @@ final class BaseFullCoverageTest extends TestCase
     }
 
     // =========================================================
-    // config() — empty-string value → NULL (covers line 2185)
+    // config() - empty-string value → NULL (covers line 2185)
     // =========================================================
 
     public function testConfigEmptyStringValue(): void
@@ -2088,7 +2088,7 @@ final class BaseFullCoverageTest extends TestCase
     }
 
     // =========================================================
-    // config() — [configs] section: cast(rval) path (covers line 2167)
+    // config() - [configs] section: cast(rval) path (covers line 2167)
     // =========================================================
 
     public function testConfigConfigsSection(): void
@@ -2114,7 +2114,7 @@ final class BaseFullCoverageTest extends TestCase
     }
 
     // =========================================================
-    // ip() — REMOTE_ADDR fallback (covers innermost branch)
+    // ip() - REMOTE_ADDR fallback (covers innermost branch)
     // =========================================================
 
     public function testIpRemoteAddr(): void
@@ -2136,7 +2136,7 @@ final class BaseFullCoverageTest extends TestCase
     }
 
     // =========================================================
-    // ip() — empty fallback when no REMOTE_ADDR (covers '' branch)
+    // ip() - empty fallback when no REMOTE_ADDR (covers '' branch)
     // =========================================================
 
     public function testIpEmptyFallback(): void
@@ -2157,7 +2157,7 @@ final class BaseFullCoverageTest extends TestCase
     }
 
     // =========================================================
-    // reroute() — array URL calls alias() (covers lines 1642-1645)
+    // reroute() - array URL calls alias() (covers lines 1642-1645)
     // =========================================================
 
     public function testRerouteWithArrayUrl(): void
@@ -2188,7 +2188,7 @@ final class BaseFullCoverageTest extends TestCase
     }
 
     // =========================================================
-    // reroute() — no-leading-slash URL (covers line 1657)
+    // reroute() - no-leading-slash URL (covers line 1657)
     // =========================================================
 
     public function testRerouteRelativeUrl(): void

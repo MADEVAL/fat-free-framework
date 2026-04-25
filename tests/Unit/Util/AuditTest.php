@@ -234,13 +234,13 @@ final class AuditTest extends TestCase
 
     public function testUuidStrictRejectsNilUuid(): void
     {
-        // Nil UUID has version 0 and variant 0 — fails strict.
+        // Nil UUID has version 0 and variant 0 - fails strict.
         $this->assertFalse($this->audit->uuid('00000000-0000-0000-0000-000000000000'));
     }
 
     public function testUuidStrictRejectsMaxUuid(): void
     {
-        // Max UUID has version f — fails strict.
+        // Max UUID has version f - fails strict.
         $this->assertFalse($this->audit->uuid('ffffffff-ffff-ffff-ffff-ffffffffffff'));
     }
 
