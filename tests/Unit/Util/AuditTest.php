@@ -187,4 +187,96 @@ final class AuditTest extends TestCase
         // 'A1' (len=2): 4*1 + 2*(2-1) + 0 + 0 + 6*(bool) = 4+2+6 = 12.
         $this->assertSame(12, $this->audit->entropy('A1'));
     }
+
+    // -----------------------------------------------------------------
+    // uuid()
+    // -----------------------------------------------------------------
+
+    public function testUuidV4StrictValid(): void
+    {
+        // Canonical v4, lowercase.
+        $this->assertTrue($this->audit->uuid('550e8400-e29b-41d4-a716-446655440000'));
+    }
+
+    public function testUuidV1StrictValid(): void
+    {
+        $this->assertTrue($this->audit->uuid('6ba7b810-9dad-11d1-80b4-00c04fd430c8'));
+    }
+
+    public function testUuidV7StrictValid(): void
+    {
+        // v7: version digit = 7, variant = 8 (10xx).
+        $this->assertTrue($this->audit->uuid('018e3de6-c6f9-7000-8f87-ea07c9e11f67'));
+    }
+
+    public function testUuidUppercaseStrictValid(): void
+    {
+        $this->assertTrue($this->audit->uuid('550E8400-E29B-41D4-A716-446655440000'));
+    }
+
+    public function testUuidStrictRejectsVersionZero(): void
+    {
+        // Version 0 is not defined.
+        $this->assertFalse($this->audit->uuid('550e8400-e29b-01d4-a716-446655440000'));
+    }
+
+    public function testUuidStrictRejectsVersionNine(): void
+    {
+        // Version 9 is not defined.
+        $this->assertFalse($this->audit->uuid('550e8400-e29b-91d4-a716-446655440000'));
+    }
+
+    public function testUuidStrictRejectsWrongVariant(): void
+    {
+        // Variant 'c' (1100) is reserved, not RFC 4122.
+        $this->assertFalse($this->audit->uuid('550e8400-e29b-41d4-c716-446655440000'));
+    }
+
+    public function testUuidStrictRejectsNilUuid(): void
+    {
+        // Nil UUID has version 0 and variant 0 — fails strict.
+        $this->assertFalse($this->audit->uuid('00000000-0000-0000-0000-000000000000'));
+    }
+
+    public function testUuidStrictRejectsMaxUuid(): void
+    {
+        // Max UUID has version f — fails strict.
+        $this->assertFalse($this->audit->uuid('ffffffff-ffff-ffff-ffff-ffffffffffff'));
+    }
+
+    public function testUuidLooseAcceptsNilUuid(): void
+    {
+        $this->assertTrue($this->audit->uuid('00000000-0000-0000-0000-000000000000', false));
+    }
+
+    public function testUuidLooseAcceptsMaxUuid(): void
+    {
+        $this->assertTrue($this->audit->uuid('ffffffff-ffff-ffff-ffff-ffffffffffff', false));
+    }
+
+    public function testUuidRejectsNoHyphens(): void
+    {
+        $this->assertFalse($this->audit->uuid('550e8400e29b41d4a716446655440000'));
+    }
+
+    public function testUuidRejectsNonHex(): void
+    {
+        $this->assertFalse($this->audit->uuid('zzzzzzzz-zzzz-4zzz-azzz-zzzzzzzzzzzz'));
+    }
+
+    public function testUuidRejectsEmpty(): void
+    {
+        $this->assertFalse($this->audit->uuid(''));
+    }
+
+    public function testUuidRejectsTooShort(): void
+    {
+        $this->assertFalse($this->audit->uuid('550e8400-e29b-41d4-a716'));
+    }
+
+    public function testUuidRejectsTrailingNewline(): void
+    {
+        // The /D modifier must prevent $ from matching before a trailing newline.
+        $this->assertFalse($this->audit->uuid("550e8400-e29b-41d4-a716-446655440000\n"));
+    }
 }

@@ -221,4 +221,22 @@ class Audit extends Prefab {
             || preg_match('/^([0-9a-f]{2}:){3}ff:fe(:[0-9a-f]{2}){3}$/i', $addr);
     }
 
+	/**
+	*	Return TRUE if string is a valid UUID (RFC 9562, versions 1-8)
+	*	Strict mode (default) enforces version (1-8) and variant (8,9,a,b) bits.
+	*	Loose mode accepts any 8-4-4-4-12 hex pattern (nil, max, non-standard).
+	*	@return bool
+	*	@param $str string
+	*	@param $strict bool
+	**/
+	function uuid($str,$strict=TRUE) {
+		return $strict
+			? (bool)preg_match(
+				'/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/iD',
+				$str)
+			: (bool)preg_match(
+				'/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/iD',
+				$str);
+	}
+
 }
