@@ -456,7 +456,7 @@ class Web extends Prefab {
 		}
 		else {
 			$tmp=error_get_last();
-			$err=$tmp['message'];
+			$err = $tmp['message'] ?? '';
 		}
 		return [
 			'body'=>$body,
@@ -575,7 +575,7 @@ class Web extends Prefab {
 			'stream'=>ini_get('allow_url_fopen'),
 			'socket'=>function_exists('fsockopen')
 		];
-		if ($flags[$arg])
+		if (isset($flags[$arg]) && $flags[$arg])
 			return $this->wrapper=$arg;
 		foreach ($flags as $key=>$val)
 			if ($val)

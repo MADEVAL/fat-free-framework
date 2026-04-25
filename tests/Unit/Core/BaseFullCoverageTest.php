@@ -934,20 +934,22 @@ final class BaseFullCoverageTest extends TestCase
     {
         $f3   = $this->f3;
         $saved = [
-            'QUIET'   => $f3->get('QUIET'),
-            'HALT'    => $f3->get('HALT'),
-            'QUERY'   => $f3->get('QUERY'),
-            'ERROR'   => $f3->get('ERROR'),
-            'ONERROR' => $f3->get('ONERROR'),
+            'QUIET'    => $f3->get('QUIET'),
+            'HALT'     => $f3->get('HALT'),
+            'QUERY'    => $f3->get('QUERY'),
+            'ERROR'    => $f3->get('ERROR'),
+            'ONERROR'  => $f3->get('ONERROR'),
+            'LOGGABLE' => $f3->get('LOGGABLE'),
         ];
         $savedProto = $_SERVER['SERVER_PROTOCOL'] ?? null;
         $_SERVER['SERVER_PROTOCOL'] = 'HTTP/1.1';
         $f3->sync('SERVER');
-        $f3->set('QUIET',   true);
-        $f3->set('HALT',    false);
-        $f3->set('QUERY',   'foo=bar');
-        $f3->set('ERROR',   null);
-        $f3->set('ONERROR', null);
+        $f3->set('QUIET',    true);
+        $f3->set('HALT',     false);
+        $f3->set('QUERY',    'foo=bar');
+        $f3->set('ERROR',    null);
+        $f3->set('ONERROR',  null);
+        $f3->set('LOGGABLE', '');
         try {
             $f3->error(400, '');
             $this->assertStringContainsString('?foo=bar', (string) $f3->get('ERROR.text'));
@@ -964,24 +966,26 @@ final class BaseFullCoverageTest extends TestCase
     {
         $f3   = $this->f3;
         $saved = [
-            'QUIET'   => $f3->get('QUIET'),
-            'HALT'    => $f3->get('HALT'),
-            'AJAX'    => $f3->get('AJAX'),
-            'CLI'     => $f3->get('CLI'),
-            'DEBUG'   => $f3->get('DEBUG'),
-            'ERROR'   => $f3->get('ERROR'),
-            'ONERROR' => $f3->get('ONERROR'),
+            'QUIET'    => $f3->get('QUIET'),
+            'HALT'     => $f3->get('HALT'),
+            'AJAX'     => $f3->get('AJAX'),
+            'CLI'      => $f3->get('CLI'),
+            'DEBUG'    => $f3->get('DEBUG'),
+            'ERROR'    => $f3->get('ERROR'),
+            'ONERROR'  => $f3->get('ONERROR'),
+            'LOGGABLE' => $f3->get('LOGGABLE'),
         ];
         $savedProto = $_SERVER['SERVER_PROTOCOL'] ?? null;
         $_SERVER['SERVER_PROTOCOL'] = 'HTTP/1.1';
         $f3->sync('SERVER');
-        $f3->set('QUIET',   false);
-        $f3->set('HALT',    false);
-        $f3->set('AJAX',    true);
-        $f3->set('CLI',     false);
-        $f3->set('DEBUG',   0);
-        $f3->set('ERROR',   null);
-        $f3->set('ONERROR', null);
+        $f3->set('QUIET',    false);
+        $f3->set('HALT',     false);
+        $f3->set('AJAX',     true);
+        $f3->set('CLI',      false);
+        $f3->set('DEBUG',    0);
+        $f3->set('ERROR',    null);
+        $f3->set('ONERROR',  null);
+        $f3->set('LOGGABLE', '');
         $startLevel = ob_get_level();
         ob_start();
         try {
@@ -1004,19 +1008,21 @@ final class BaseFullCoverageTest extends TestCase
     {
         $f3   = $this->f3;
         $saved = [
-            'QUIET'   => $f3->get('QUIET'),
-            'HALT'    => $f3->get('HALT'),
-            'CLI'     => $f3->get('CLI'),
-            'ERROR'   => $f3->get('ERROR'),
-            'ONERROR' => $f3->get('ONERROR'),
+            'QUIET'    => $f3->get('QUIET'),
+            'HALT'     => $f3->get('HALT'),
+            'CLI'      => $f3->get('CLI'),
+            'ERROR'    => $f3->get('ERROR'),
+            'ONERROR'  => $f3->get('ONERROR'),
+            'LOGGABLE' => $f3->get('LOGGABLE'),
         ];
         $savedProto = $_SERVER['SERVER_PROTOCOL'] ?? null;
         $_SERVER['SERVER_PROTOCOL'] = 'HTTP/1.1';
         $f3->sync('SERVER');
-        $f3->set('QUIET',   false);
-        $f3->set('HALT',    false);
-        $f3->set('CLI',     true);  // CLI output path (avoids headers/AJAX)
-        $f3->set('ONERROR', null);
+        $f3->set('QUIET',    false);
+        $f3->set('HALT',     false);
+        $f3->set('CLI',      true);  // CLI output path (avoids headers/AJAX)
+        $f3->set('ONERROR',  null);
+        $f3->set('LOGGABLE', '');
         // Pre-set ERROR so the output block is skipped (prior !== null).
         $f3->set('ERROR', ['code' => 404, 'status' => 'Not Found',
                            'text' => 'prior', 'trace' => '', 'level' => 0]);
@@ -1447,15 +1453,17 @@ final class BaseFullCoverageTest extends TestCase
         $_SERVER['SERVER_PROTOCOL'] = 'HTTP/1.1';
         $f3->sync('SERVER');
         $saved = [
-            'QUIET'   => $f3->get('QUIET'),
-            'HALT'    => $f3->get('HALT'),
-            'ERROR'   => $f3->get('ERROR'),
-            'ONERROR' => $f3->get('ONERROR'),
+            'QUIET'    => $f3->get('QUIET'),
+            'HALT'     => $f3->get('HALT'),
+            'ERROR'    => $f3->get('ERROR'),
+            'ONERROR'  => $f3->get('ONERROR'),
+            'LOGGABLE' => $f3->get('LOGGABLE'),
         ];
-        $f3->set('QUIET',   true);
-        $f3->set('HALT',    false);
-        $f3->set('ERROR',   null);
-        $f3->set('ONERROR', null);
+        $f3->set('QUIET',    true);
+        $f3->set('HALT',     false);
+        $f3->set('ERROR',    null);
+        $f3->set('ONERROR',  null);
+        $f3->set('LOGGABLE', '');
         try {
             // ['stdClass','noSuchMethod'] is not callable;
             // with 'beforeroute,afterroute' hooks, call() triggers error(405).
@@ -1652,17 +1660,19 @@ final class BaseFullCoverageTest extends TestCase
         $_SERVER['SERVER_PROTOCOL'] = 'HTTP/1.1';
         $f3->sync('SERVER');
         $saved = [
-            'ROUTES'  => $f3->get('ROUTES'),
-            'ALIASES' => $f3->get('ALIASES'),
-            'QUIET'   => $f3->get('QUIET'),
-            'HALT'    => $f3->get('HALT'),
-            'ERROR'   => $f3->get('ERROR'),
-            'ONERROR' => $f3->get('ONERROR'),
+            'ROUTES'   => $f3->get('ROUTES'),
+            'ALIASES'  => $f3->get('ALIASES'),
+            'QUIET'    => $f3->get('QUIET'),
+            'HALT'     => $f3->get('HALT'),
+            'ERROR'    => $f3->get('ERROR'),
+            'ONERROR'  => $f3->get('ONERROR'),
+            'LOGGABLE' => $f3->get('LOGGABLE'),
         ];
-        $f3->set('QUIET',   true);
-        $f3->set('HALT',    false);
-        $f3->set('ERROR',   null);
-        $f3->set('ONERROR', null);
+        $f3->set('QUIET',    true);
+        $f3->set('HALT',     false);
+        $f3->set('ERROR',    null);
+        $f3->set('ONERROR',  null);
+        $f3->set('LOGGABLE', '');
         // Register a route with a string handler containing an @token for a non-existent class.
         // Token replacement runs, then class-not-found sets ERROR 404, then grab() throws.
         $f3->route('GET /cov-tok/@action', 'NoSuchClassCov->@action');
@@ -1690,19 +1700,21 @@ final class BaseFullCoverageTest extends TestCase
         $_SERVER['SERVER_PROTOCOL'] = 'HTTP/1.1';
         $f3->sync('SERVER');
         $saved = [
-            'ROUTES'  => $f3->get('ROUTES'),
-            'ALIASES' => $f3->get('ALIASES'),
-            'QUIET'   => $f3->get('QUIET'),
-            'HALT'    => $f3->get('HALT'),
-            'CLI'     => $f3->get('CLI'),
-            'ERROR'   => $f3->get('ERROR'),
-            'ONERROR' => $f3->get('ONERROR'),
+            'ROUTES'   => $f3->get('ROUTES'),
+            'ALIASES'  => $f3->get('ALIASES'),
+            'QUIET'    => $f3->get('QUIET'),
+            'HALT'     => $f3->get('HALT'),
+            'CLI'      => $f3->get('CLI'),
+            'ERROR'    => $f3->get('ERROR'),
+            'ONERROR'  => $f3->get('ONERROR'),
+            'LOGGABLE' => $f3->get('LOGGABLE'),
         ];
-        $f3->set('QUIET',   true);
-        $f3->set('HALT',    false);
-        $f3->set('CLI',     false); // CLI=false triggers the 405 header+error path
-        $f3->set('ERROR',   null);
-        $f3->set('ONERROR', null);
+        $f3->set('QUIET',    true);
+        $f3->set('HALT',     false);
+        $f3->set('CLI',      false); // CLI=false triggers the 405 header+error path
+        $f3->set('ERROR',    null);
+        $f3->set('ONERROR',  null);
+        $f3->set('LOGGABLE', '');
         $f3->route('GET /cov-405', fn () => 'ok');
         try {
             // POST to a GET-only route → 405
@@ -1857,6 +1869,7 @@ final class BaseFullCoverageTest extends TestCase
             'HIGHLIGHT' => $f3->get('HIGHLIGHT'),
             'ERROR'     => $f3->get('ERROR'),
             'ONERROR'   => $f3->get('ONERROR'),
+            'LOGGABLE'  => $f3->get('LOGGABLE'),
         ];
         $savedProto = $_SERVER['SERVER_PROTOCOL'] ?? null;
         $_SERVER['SERVER_PROTOCOL'] = 'HTTP/1.1';
@@ -1869,6 +1882,7 @@ final class BaseFullCoverageTest extends TestCase
         $f3->set('HIGHLIGHT', false); // keep it simple: no CSS highlight
         $f3->set('ERROR',     null);
         $f3->set('ONERROR',   null);
+        $f3->set('LOGGABLE',  '');
         $startLevel = ob_get_level();
         ob_start();
         try {
